@@ -1,0 +1,47 @@
+# .github/workflows/neoncodex.yml
+# Mention @neoncodex in an issue, a pull request or a review comment.
+name: NeonCodex
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  issues:
+    types: [opened, assigned]
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: What should the agent do?
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  neoncodex:
+    # Skip quickly when nobody asked for the agent.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.comment.body, '@neoncodex') ||
+      contains(github.event.issue.body, '@neoncodex') ||
+      contains(github.event.issue.title, '@neoncodex')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    concurrency:
+      group: neoncodex-${{ github.event.issue.number || github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: BrowserlessAPI/neoncodex-action@v1
+        with:
+          api-key: ${{ secrets.NEONCODEX_API_KEY }}
+          prompt: ${{ github.event.inputs.prompt }}

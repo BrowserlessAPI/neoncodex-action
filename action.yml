@@ -1,0 +1,95 @@
+name: NeonCodex Agent
+description: Mention @neoncodex in an issue or pull request and the NeonCodex coding agent makes the change and opens a pull request.
+author: NeonCodex
+branding:
+  icon: code
+  color: purple
+
+inputs:
+  api-key:
+    description: Your NeonCodex API key. Store it as a repository secret (for example NEONCODEX_API_KEY) and pass it with secrets.NEONCODEX_API_KEY.
+    required: true
+  github-token:
+    description: Token for comments, branches and pull requests. The default GITHUB_TOKEN works when the job grants contents, pull-requests and issues write permissions.
+    required: false
+    default: ${{ github.token }}
+  prompt:
+    description: The task for runs that are not started by a comment (workflow_dispatch, schedule). For comment runs it is added as standing instructions.
+    required: false
+    default: ""
+  trigger-phrase:
+    description: The word that starts the agent in comments, issues and reviews.
+    required: false
+    default: "@neoncodex"
+  mode:
+    description: agent (changes code), ask or plan (answers only), or the id of a custom mode in .neoncodex/modes.
+    required: false
+    default: agent
+  model:
+    description: Model id, for example claude-sonnet-5-5. Default is auto routing.
+    required: false
+    default: ""
+  allowed-roles:
+    description: Repository roles allowed to start the agent from comments and issues, comma-separated.
+    required: false
+    default: admin,maintain,write
+  trust-project:
+    description: Run the repository's .neoncodex/hooks.json and project MCP servers. Only turn this on if you trust everyone who can change those files.
+    required: false
+    default: "false"
+  browser:
+    description: Let the agent use a headless browser on the runner (needs Chrome or Chromium installed).
+    required: false
+    default: "false"
+  branch-prefix:
+    description: Prefix for branches the agent creates.
+    required: false
+    default: neoncodex/
+  base-branch:
+    description: Branch new pull requests target. Default is the branch that was checked out.
+    required: false
+    default: ""
+  draft-pr:
+    description: Open pull requests as drafts.
+    required: false
+    default: "false"
+  commit-name:
+    description: Git author name for the agent's commits.
+    required: false
+    default: github-actions[bot]
+  commit-email:
+    description: Git author email for the agent's commits.
+    required: false
+    default: 41898282+github-actions[bot]@users.noreply.github.com
+  cli-version:
+    description: Version range of the neoncodex npm package to run.
+    required: false
+    default: ^1.6.0
+  timeout-minutes:
+    description: Stop the agent after this many minutes.
+    required: false
+    default: "30"
+  isolation:
+    description: "auto or user: the agent runs as a separate user on a copy of the checkout (Linux runners with passwordless sudo, like GitHub's). none: it runs as the runner user and could read this job's token."
+    required: false
+    default: auto
+  api-url:
+    description: NeonCodex server, only if your organization runs its own.
+    required: false
+    default: ""
+
+outputs:
+  status:
+    description: completed, failed, cancelled, or skipped
+  branch:
+    description: Branch with the agent's changes, if any
+  pr-url:
+    description: Pull request with the changes, if one was opened or updated
+  files-changed:
+    description: Number of files the agent changed
+  output:
+    description: The agent's final answer
+
+runs:
+  using: node20
+  main: dist/index.js
